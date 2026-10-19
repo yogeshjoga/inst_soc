@@ -41,6 +41,7 @@ async function createAutomation(formData: FormData) {
     link_url: String(formData.get("link") || "") || null,
   });
   revalidatePath("/dashboard");
+  redirect("/dashboard?created=1");
 }
 
 async function toggle(formData: FormData) {
@@ -51,6 +52,7 @@ async function toggle(formData: FormData) {
     .update({ active: formData.get("active") !== "true" })
     .eq("id", String(formData.get("id")));
   revalidatePath("/dashboard");
+  redirect("/dashboard");
 }
 
 async function remove(formData: FormData) {
@@ -58,11 +60,12 @@ async function remove(formData: FormData) {
   const supabase = await createClient();
   await supabase.from("automations").delete().eq("id", String(formData.get("id")));
   revalidatePath("/dashboard");
+  redirect("/dashboard");
 }
 
 const input = "w-full rounded-lg bg-neutral-900 p-2.5 text-sm";
 
-export default async function Dashboard({ searchParams }: { searchParams: Promise<{ error?: string; connected?: string }> }) {
+export default async function Dashboard({ searchParams }: { searchParams: Promise<{ error?: string; connected?: string; created?: string }> }) {
   const sp = await searchParams;
   const supabase = await createClient();
   const { data: auth } = await supabase.auth.getUser();
@@ -94,6 +97,7 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
         <p className="rounded-lg bg-red-950 p-3 text-sm text-red-300">Your account is suspended. Automations are paused. Contact support.</p>
       )}
       {sp.error && <p className="rounded-lg bg-red-950 p-3 text-sm text-red-300">Instagram connect failed: {sp.error}</p>}
+      {sp.created && <p className="rounded-lg bg-green-950 p-3 text-sm text-green-300">Automation created.</p>}
       {sp.connected && <p className="rounded-lg bg-green-950 p-3 text-sm text-green-300">Instagram connected.</p>}
 
       <section className="grid grid-cols-3 gap-3">
