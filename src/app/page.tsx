@@ -172,6 +172,11 @@ export default function Home() {
       </section>
 
       <footer className="border-t border-neutral-900 px-5 py-8 text-center text-xs text-neutral-500">
+        <p className="mb-2 space-x-4">
+          <a href="/privacy">Privacy</a>
+          <a href="/terms">Terms</a>
+          <a href="/data-deletion">Data deletion</a>
+        </p>
         Loopline is not affiliated with or endorsed by Meta or Instagram.
       </footer>
     </main>
