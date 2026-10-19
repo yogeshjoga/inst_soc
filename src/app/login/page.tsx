@@ -9,20 +9,24 @@ async function auth(formData: FormData) {
   const password = String(formData.get("password"));
   const mode = String(formData.get("mode"));
   const supabase = await createClient();
-  const { error } =
+  const { data, error } =
     mode === "signup"
       ? await supabase.auth.signUp({ email, password })
       : await supabase.auth.signInWithPassword({ email, password });
   if (error) redirect(`/login?error=${encodeURIComponent(error.message)}`);
-  redirect("/dashboard");
+  // Email confirmation on: signUp succeeds but returns no session yet.
+  if (!data.session) redirect("/login?notice=" + encodeURIComponent("Check your email to confirm your account, then log in."));
+  const { data: profile } = await supabase.from("profiles").select("role").eq("id", data.user!.id).single();
+  redirect(profile?.role === "admin" ? "/admin" : "/dashboard");
 }
 
-export default async function Login({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
-  const { error } = await searchParams;
+export default async function Login({ searchParams }: { searchParams: Promise<{ error?: string; notice?: string }> }) {
+  const { error, notice } = await searchParams;
   return (
     <main className="mx-auto flex min-h-screen max-w-sm flex-col justify-center gap-4 bg-neutral-950 px-5 text-neutral-100">
       <h1 className="text-2xl font-semibold">Log in to Loopline</h1>
       {error && <p className="rounded-lg bg-red-950 p-3 text-sm text-red-300">{error}</p>}
+      {notice && <p className="rounded-lg bg-green-950 p-3 text-sm text-green-300">{notice}</p>}
       <form action={auth} className="flex flex-col gap-3">
         <input name="email" type="email" required placeholder="Email" className="rounded-lg bg-neutral-900 p-3" />
         <input name="password" type="password" required minLength={8} placeholder="Password (8+ chars)" className="rounded-lg bg-neutral-900 p-3" />

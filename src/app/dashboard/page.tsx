@@ -68,7 +68,8 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
   const { data: auth } = await supabase.auth.getUser();
   if (!auth.user) redirect("/login");
 
-  const [accounts, automations, leads, events] = await Promise.all([
+  const [profile, accounts, automations, leads, events] = await Promise.all([
+    supabase.from("profiles").select("role, plan, status").eq("id", auth.user.id).single(),
     supabase.from("ig_accounts").select("id, username"),
     supabase.from("automations").select("*").order("created_at", { ascending: false }),
     supabase.from("leads").select("username, keyword, media_id, created_at").order("created_at", { ascending: false }).limit(20),
@@ -80,12 +81,18 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
   return (
     <main className="mx-auto max-w-4xl space-y-8 bg-neutral-950 px-5 py-8 text-neutral-100">
       <header className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Dashboard</h1>
+        <h1 className="text-2xl font-semibold">
+          Dashboard <span className="ml-2 rounded-full border border-neutral-700 px-2 py-0.5 text-xs text-neutral-400">{profile.data?.plan} plan</span>
+        </h1>
+        {profile.data?.role === "admin" && <a href="/admin" className="text-sm text-fuchsia-400">Admin &rarr;</a>}
         <a href="/api/instagram/connect" className="rounded-full bg-fuchsia-500 px-4 py-2 text-sm font-medium">
           {accounts.data?.length ? "Reconnect Instagram" : "Connect Instagram"}
         </a>
       </header>
 
+      {profile.data?.status === "suspended" && (
+        <p className="rounded-lg bg-red-950 p-3 text-sm text-red-300">Your account is suspended. Automations are paused. Contact support.</p>
+      )}
       {sp.error && <p className="rounded-lg bg-red-950 p-3 text-sm text-red-300">Instagram connect failed: {sp.error}</p>}
       {sp.connected && <p className="rounded-lg bg-green-950 p-3 text-sm text-green-300">Instagram connected.</p>}
 
