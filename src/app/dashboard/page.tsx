@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { pollComments } from "@/lib/comments";
 
 export const instant = false;
 
@@ -44,6 +45,19 @@ async function createAutomation(formData: FormData) {
   redirect("/dashboard?created=1");
 }
 
+async function checkNow() {
+  "use server";
+  const supabase = await createClient();
+  const { data: auth } = await supabase.auth.getUser();
+  if (!auth.user) redirect("/login");
+  const r = await pollComments(auth.user.id);
+  const q = new URLSearchParams({
+    polled: `${r.comments} comments on ${r.media} posts checked, ${r.sent} DMs sent, ${r.failed} failed`,
+  });
+  if (r.errors.length) q.set("poll_error", r.errors[0]);
+  redirect(`/dashboard?${q}`);
+}
+
 async function toggle(formData: FormData) {
   "use server";
   const supabase = await createClient();
@@ -65,7 +79,7 @@ async function remove(formData: FormData) {
 
 const input = "w-full rounded-lg bg-neutral-900 p-2.5 text-sm";
 
-export default async function Dashboard({ searchParams }: { searchParams: Promise<{ error?: string; connected?: string; created?: string }> }) {
+export default async function Dashboard({ searchParams }: { searchParams: Promise<{ error?: string; connected?: string; created?: string; polled?: string; poll_error?: string }> }) {
   const sp = await searchParams;
   const supabase = await createClient();
   const { data: auth } = await supabase.auth.getUser();
@@ -88,6 +102,9 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
           Dashboard <span className="ml-2 rounded-full border border-neutral-700 px-2 py-0.5 text-xs text-neutral-400">{profile.data?.plan} plan</span>
         </h1>
         {profile.data?.role === "admin" && <a href="/admin" className="text-sm text-fuchsia-400">Admin &rarr;</a>}
+        <form action={checkNow}>
+          <button className="rounded-full border border-neutral-700 px-4 py-2 text-sm">Check comments now</button>
+        </form>
         <a href="/api/instagram/connect" className="rounded-full bg-fuchsia-500 px-4 py-2 text-sm font-medium">
           {accounts.data?.length ? "Reconnect Instagram" : "Connect Instagram"}
         </a>
@@ -97,6 +114,8 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
         <p className="rounded-lg bg-red-950 p-3 text-sm text-red-300">Your account is suspended. Automations are paused. Contact support.</p>
       )}
       {sp.error && <p className="rounded-lg bg-red-950 p-3 text-sm text-red-300">Instagram connect failed: {sp.error}</p>}
+      {sp.polled && <p className="rounded-lg bg-green-950 p-3 text-sm text-green-300">Checked: {sp.polled}.</p>}
+      {sp.poll_error && <p className="rounded-lg bg-red-950 p-3 text-sm text-red-300">Instagram said: {sp.poll_error}</p>}
       {sp.created && <p className="rounded-lg bg-green-950 p-3 text-sm text-green-300">Automation created.</p>}
       {sp.connected && <p className="rounded-lg bg-green-950 p-3 text-sm text-green-300">Instagram connected.</p>}
 
