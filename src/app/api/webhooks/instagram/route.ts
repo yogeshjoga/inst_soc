@@ -20,7 +20,13 @@ type CommentChange = {
 
 export async function POST(req: NextRequest) {
   const raw = await req.text();
-  if (!verifySignature(raw, req.headers.get("x-hub-signature-256"))) {
+  const signatureOk = verifySignature(raw, req.headers.get("x-hub-signature-256"));
+  // Diagnostic trail of everything Meta sends us (service role only; prune periodically).
+  await createAdmin()
+    .from("webhook_log")
+    .insert({ signature_ok: signatureOk, body: raw.slice(0, 4000) })
+    .then(undefined, () => {});
+  if (!signatureOk) {
     return new Response("bad signature", { status: 401 });
   }
   const body = JSON.parse(raw) as { entry?: { id: string; changes?: CommentChange[] }[] };
