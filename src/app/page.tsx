@@ -61,7 +61,7 @@ export default function Home() {
           <a href="#pricing">Pricing</a>
           <a href="#faq">FAQ</a>
         </nav>
-        <a href="/dashboard" className="rounded-full bg-white px-4 py-2 text-sm font-medium text-black">
+        <a href="/signup" className="rounded-full bg-white px-4 py-2 text-sm font-medium text-black">
           Start free
         </a>
       </header>
@@ -78,7 +78,7 @@ export default function Home() {
             One workspace that replaces your DM bot, CRM, scheduler and analytics tab. Flat price, no per-contact fees.
           </p>
           <div className="mt-8 flex gap-3">
-            <a href="/dashboard" className="rounded-full bg-fuchsia-500 px-6 py-3 font-medium text-white">
+            <a href="/signup" className="rounded-full bg-fuchsia-500 px-6 py-3 font-medium text-white">
               Start for free
             </a>
             <a href="#modules" className="rounded-full border border-neutral-700 px-6 py-3 font-medium">

@@ -34,7 +34,7 @@ async function setStatus(formData: FormData) {
 }
 
 type UserRow = {
-  id: string; email: string; role: string; plan: string; status: string; created_at: string;
+  id: string; email: string; full_name: string | null; role: string; plan: string; status: string; created_at: string;
   last_sign_in_at: string | null; ig_accounts: number; automations: number;
   dms_sent: number; dms_failed: number; leads: number;
 };
@@ -83,7 +83,7 @@ export default async function Admin() {
           <table className="w-full min-w-[860px] text-left text-sm">
             <thead className="border-b border-neutral-800 text-neutral-400">
               <tr>
-                {["Email", "Plan", "Usage", "IG", "Autos", "Failed", "Leads", "Last login", "Status", ""].map((h) => (
+                {["User", "Plan", "Usage", "IG", "Autos", "Failed", "Leads", "Last login", "Status", ""].map((h) => (
                   <th key={h} className="p-3 font-medium">{h}</th>
                 ))}
               </tr>
@@ -92,6 +92,7 @@ export default async function Admin() {
               {rows.map((u) => (
                 <tr key={u.id}>
                   <td className="p-3">
+                    {u.full_name && <div className="font-medium">{u.full_name}</div>}
                     {u.email} {u.role === "admin" && <span className="ml-1 rounded bg-fuchsia-950 px-1.5 text-xs text-fuchsia-300">admin</span>}
                     <div className="text-xs text-neutral-500">joined {fmt(u.created_at)}</div>
                   </td>
